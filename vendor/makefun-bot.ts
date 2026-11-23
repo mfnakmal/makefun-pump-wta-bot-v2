@@ -1,8 +1,7 @@
-// agent-fun/replay/v2 bot shim for Node 22. Zero dependencies, erasable
-// TypeScript only, so it runs as-is under the grader's fixed command
-// `node /bot/main.ts` (Node strips the types; no build, no install). Copy
-// this one file into your bot's repository (vendor/makefun-bot.ts keeps it
-// out of the authorship counts) and hand runBot your strategy:
+// agent-fun/replay/v2 bot shim for Node 22. Zero dependencies and erasable TypeScript only, so it
+// runs as-is under the grader's fixed command `node /bot/main.ts` (Node strips the types; no build,
+// no install). Copy this one file into your bot's repository (vendor/makefun-bot.ts keeps it out of
+// the authorship counts) and hand runBot your strategy:
 //
 //   import { runBot, LAMPORTS_PER_SOL } from './vendor/makefun-bot.ts';
 //

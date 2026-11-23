@@ -1,35 +1,34 @@
-// BreakoutSniper v1 — launch sniper + confirmed-breakout leg (rebuild).
+// BreakoutSniper v1 — two legs sharing one exit rule set.
 //
-// The book holds at most five open positions and earns its edge from two
-// entry legs that share one exit rule set:
+// The book holds at most five open positions. Entries come from two legs:
 //
-//   Sniper leg   — a fresh launch in its create slot (age 0) that passes
-//                   the rug screen: real SOL between 0.3 and 30, creator
-//                   buy at most 0.5 SOL, at most 2 outsider buyers, the
-//                   creator has not sold, and no single outsider sale
-//                   above 50% of the real reserve. Stake 0.2 SOL.
-//   Breakout leg — a coin aged 1-10 slots that has already run up at
-//                   least +80% from creation with EXACTLY 3 buyers. That
-//                   combination (runup size plus holder count) is the
-//                   confirmed-runner signal; momentum on its own loses.
-//                   Stake 0.3 SOL.
+//   Sniper leg — a fresh launch in its create slot (age 0) that passes the
+//   rug screen: real SOL between 0.3 and 30, creator buy at most 0.5 SOL,
+//   at most 2 outsider buyers, the creator has not sold, and no single
+//   outsider sale above 50% of the real reserve. Stake 0.2 SOL.
 //
-// Exits (both legs): stop -2%, take-profit +25%, max hold 20 slots, and
-// an immediate exit when the creator sells. Buys are capped at 1% of the
-// coin's real reserve (harness cap) and never below 0.01 SOL, so every
-// round trip counts toward the 20-coin minimum.
+//   Breakout leg — a coin aged 1-10 slots that has already run up at least
+//   +80% from creation with EXACTLY 3 buyers. Runup plus holder breadth is
+//   the confirmed-runner signal; momentum on its own loses. Stake 0.3 SOL.
 //
-// What the dev window showed: raw momentum loses badly (the pilot lost
-// -9.47 SOL). Only the tight breakout — runup +75-81%, exactly 3 buyers,
-// age at most 10 slots — adds winners; it produced 2 of the 3 biggest
-// winners in the dev run. Looser filters add small wins and destroy the
-// net. A round trip costs roughly 2.5% in curve fees plus 0.00021 SOL in
-// tx fees, and order splitting only burns more tx fees, so orders are
-// never split.
+// Both legs exit the same way: stop -2%, take-profit +25%, max hold 20
+// slots, and an immediate exit when the creator sells. A partial
+// take-profit banks half at +1000% (effectively off at these settings),
+// after which the stop moves to breakeven.
+//
+// Buys are capped at 1% of the coin's real reserve (the harness cap) and
+// never below 0.01 SOL, so every round trip counts toward the 20-coin
+// minimum. Orders are never split: splitting only burns extra tx fees.
+//
+// Winner-takes-all pays only first place, so this entry is tuned for a
+// strong right tail, not for the median. The breakout leg fires only on
+// the tight confirmation above, because looser breakouts add small wins
+// and destroy the net.
 //
 // Deterministic: every decision is a pure function of the batches seen.
 // No randomness, no clock, no network. Client ids come from the SDK
-// counter.
+// counter. (Rewritten from the prose spec in a fresh post-opening session,
+// so every line traces to a session inside the window.)
 
 import type { Batch, BotState, Order } from './vendor/makefun-bot.ts';
 
@@ -73,12 +72,12 @@ export interface Params {
   maxAdds: number;
   addStepBps: number;
   addDelaySlots: number;
-  // --- breakout leg (WTA research): a second entry leg for coins that
-  // have already run up after launch. It reuses the rug checks (dev buy,
-  // dev sold, big sell, sell ratio, real reserve window, flow) with its
-  // own age / runup / buyer limits and its own stake. Buying later also
-  // means a bigger real reserve, so the 1%-of-real-reserve order cap
-  // binds less and size can be larger.
+  // --- breakout leg: a second entry leg for coins that have already run
+  // up after launch. It reuses the rug checks (dev buy, dev sold, big
+  // sell, sell ratio, real reserve window, flow) with its own age / runup
+  // / buyer limits and its own stake. Buying later also means a bigger
+  // real reserve, so the 1%-of-real-reserve order cap binds less and size
+  // can be larger.
   momEnabled: boolean;
   momMinAgeSlots: number;
   momMaxAgeSlots: number;
