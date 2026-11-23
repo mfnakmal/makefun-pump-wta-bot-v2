@@ -387,7 +387,7 @@ export function createStrategy(p0: Params) {
           pnlBps <= -effSl ||
           pnlBps >= p.tpBps ||
           trailHit ||
-          age >= p.maxHoldSlots ||
+          age >= p.maxHoldSlots || // max hold: a position that has hit neither stop nor TP by slot 20 is closed, so a stalled coin cannot sit in the book and bleed the tail
           stale >= p.staleSlots ||
           devDumped
         ) {
