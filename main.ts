@@ -28,6 +28,7 @@ import { createStrategy, DEFAULT_PARAMS } from './strategy.ts';
 
 const strategy = createStrategy(DEFAULT_PARAMS);
 
+// Hand the strategy to runBot with the default params — the harness drives every batch.
 await runBot({
   onBatch(state, batch) {
     return strategy.onBatch(state, batch);
